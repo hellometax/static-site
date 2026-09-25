@@ -208,6 +208,10 @@
   function boot() {
     var host = document.getElementById("mx-doc");
     if (!host) return;
+    /* page.js already dispatched this host (universal shell) — do not fetch
+       the same Markdown a second time or overwrite page.js's empty state. */
+    if (host.hasAttribute("data-mx-booted")) return;
+    host.setAttribute("data-mx-booted", "md");
     var src = host.getAttribute("data-md");
     if (!src) { host.innerHTML = '<section class="wrap"><p>No content source.</p></section>'; return; }
     fetch(src).then(function (r) {
