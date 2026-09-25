@@ -22,7 +22,7 @@ R.MENU.forEach((m) => {
   gaps.map((r) => ({ r, m: meta(r.url) }))
     .sort((a, b) => a.m[0] - b.m[0] || leaves.indexOf(a.r) - leaves.indexOf(b.r))
     .forEach((x, i) => {
-      totals[x.m[0]]++; if (/no source|none /.test(x.m[1])) noSeed++;
+      totals[x.m[0]]++; if (/no source|none |no dedicated/.test(x.m[1])) noSeed++;
       out.push(`| ${i + 1} | T${x.m[0]} | \`${x.r.url}\` | ${x.r.title.replace(/\|/g, "\\|")} | ${CAT[x.r.status]} | ${x.m[1]} |`);
     });
   out.push("");

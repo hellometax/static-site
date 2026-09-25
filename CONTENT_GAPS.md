@@ -43,7 +43,7 @@ Categories:
 | T2 | core concept of the pillar | 54 |
 | T3 | operational / how-to | 113 |
 | T4 | deep reference | 69 |
-| — | gaps with **no** seed source in `_refs/` (need the wider corpus) | 5 |
+| — | gaps with **no** seed source in `_refs/` (need the wider corpus) | 6 |
 
 ### TopTech — 28 gaps / 28 leaves
 
