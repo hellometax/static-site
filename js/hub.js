@@ -56,6 +56,8 @@
   function boot() {
     var host = document.getElementById("mx-hub");
     if (!host || !R) return;
+    if (host.getAttribute("data-mx-booted") === "hub") return;   // booted once already (page.js + DOMContentLoaded)
+    host.setAttribute("data-mx-booted", "hub");
     var path = host.getAttribute("data-hub") || location.pathname;
     var md = host.getAttribute("data-md");
 

@@ -432,13 +432,59 @@
                        cls: "util-auth", glyph: "\u2192", ext: true }
   ];
 
-  /* navKeyFor — reads first path segment (v2026.10.1 §1.4). */
-  function navKeyFor() {
-    var seg = location.pathname.replace(/^\/+/, "").split("/");
-    if (seg[0] === "ar") seg.shift();
+  /* NAV_PRIORITY — which pillars stay in the primary bar longest when the
+     viewport is too narrow for all nine (chrome.js folds from the END of this
+     list into "More"). The visual order of tabs is always MENU order; this only
+     decides who folds first. Rationale lives in SITE_MAP.md §"More" priority. */
+  var NAV_PRIORITY = ["toptech", "about", "credentials", "academies", "metax", "license", "method", "ascent", "library"];
+
+  /* Normalise a path: fold the /ar/ mirror, force a trailing slash on
+     directory routes (files such as ml-2-3.txt keep their extension). */
+  function normPath(p) {
+    p = String(p == null ? location.pathname : p).split(/[?#]/)[0] || "/";
+    p = p.replace(/^\/ar(\/|$)/, "/");
+    if (!/\/$/.test(p) && !/\.[a-z0-9]+$/i.test(p)) p += "/";
+    return p;
+  }
+
+  /* navKeyFor — reads first path segment (v2026.10.1 §1.4). Accepts an optional
+     path so it can be unit-tested; defaults to location.pathname. */
+  function navKeyFor(path) {
+    var seg = normPath(path).replace(/^\/+/, "").split("/");
     var k = seg[0] || "home";
-    var KEYS = ["toptech","method","ascent","metax","academies","credentials","library","license","about"];
+    var KEYS = MENU.map(function (m) { return m.key; });
     return KEYS.indexOf(k) > -1 ? k : "home";
+  }
+
+  /* activeTrail — the three-level active cascade for a path.
+       pillar : key of the pillar tab                     (level 1)
+       group  : `hub` of the group that owns the path     (level 2)
+                exact leaf membership wins; otherwise the LONGEST group hub
+                that is a prefix of the path (so /metax/bcia/status/x/ resolves
+                to "The Honesty Layer", not its parent "BCIA")
+       leaf   : `u` of the leaf link equal to the path, or — for deeper
+                parametric pages — the longest leaf that is a prefix of it (level 3)
+       current: the one URL in the menu that IS this page (gets aria-current="page");
+                every other trail member gets aria-current="true".            */
+  function activeTrail(path) {
+    var p = normPath(path);
+    var key = navKeyFor(p);
+    var t = { path: p, pillar: key === "home" ? null : key, group: null, leaf: null, current: null };
+    var m = MENU.filter(function (x) { return x.key === key; })[0];
+    if (!m) return t;
+    if (m.href === p) t.current = p;
+    var bestHub = "", bestLeaf = "", leafGroup = null;
+    (m.groups || []).forEach(function (g) {
+      if (g.hub && p.indexOf(g.hub) === 0 && g.hub.length > bestHub.length) bestHub = g.hub;
+      (g.links || []).forEach(function (l) {
+        if (l.u === p) { bestLeaf = l.u; leafGroup = g.hub; }
+        else if (!leafGroup && !l.ext && /\/$/.test(l.u) && p.indexOf(l.u) === 0 && l.u.length > bestLeaf.length) bestLeaf = l.u;
+      });
+    });
+    t.group = leafGroup || bestHub || null;
+    t.leaf = bestLeaf || null;
+    if (t.group === p || t.leaf === p) t.current = p;
+    return t;
   }
 
   /* Flatten every route (pillar hubs, group hubs, leaves) for search + sitemap. */
@@ -457,5 +503,6 @@
     return out;
   }
 
-  window.MX_ROUTES = { MENU: MENU, UTILITY: UTILITY, navKeyFor: navKeyFor, allRoutes: allRoutes };
+  window.MX_ROUTES = { MENU: MENU, UTILITY: UTILITY, NAV_PRIORITY: NAV_PRIORITY,
+    navKeyFor: navKeyFor, activeTrail: activeTrail, normPath: normPath, allRoutes: allRoutes };
 })();

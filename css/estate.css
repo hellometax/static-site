@@ -192,3 +192,154 @@
   .cosmos::after, .marquee-track, .hero-orbit, .img-slot::after { animation: none !important; }
   .reveal { opacity: 1 !important; transform: none !important; }
 }
+
+/* =====================================================================
+   NAV REPAIR LAYER — audit 2026-09-25 (see SITE_MAP.md §Navigation)
+   Overrides style.css nav rules without editing that file.
+   ===================================================================== */
+
+/* ---- A11y helpers ---- */
+.sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.skip-link { position: absolute; left: 12px; top: -60px; z-index: 1100; padding: 10px 16px; border-radius: 10px;
+  background: var(--panel-solid, #0c0e1e); color: var(--text); border: 2px solid var(--cyan); text-decoration: none; font-weight: 600; }
+.skip-link:focus { top: 10px; }
+#main-content:focus { outline: none; }
+.nav a:focus-visible, .nav button:focus-visible, .mm-more-drawer a:focus-visible, .mm-more-drawer button:focus-visible,
+.mobile-menu a:focus-visible, .mobile-menu button:focus-visible {
+  outline: 2px solid var(--cyan); outline-offset: 2px; border-radius: 8px;
+}
+[hidden] { display: none !important; }
+
+/* ---- Row geometry: the header row can never be wider than the viewport.
+   Before: .nav-inner was 1200px max with no shrink; tabs (up to 1050px) +
+   utility (392px) overflowed by 138–365px at 1280–1920px, pushing Search and
+   Sign-in off-screen ("menu items are hidden"). Now: mega flexes and clips
+   nothing (fit() in chrome.js folds tabs into More instead). ---- */
+@media (min-width: 1180px) {
+  .nav .nav-inner { max-width: min(1640px, 100%); flex-wrap: nowrap; }
+  .nav-links.mega { flex: 1 1 auto; min-width: 0; justify-content: center; }
+  .nav-utility { flex: 0 0 auto; }
+}
+
+/* Tab buttons: style.css styled .mm-top as a link; reset button chrome. */
+.mm-top { background: none; border: 0; cursor: pointer; font-family: inherit; line-height: 1.2; }
+/* Inline status badges inside the tab cost 70–110px each; they always appear
+   inside the panel, so the tab shows a compact dot instead (never vanishes). */
+.mm-top > .mm-badge { display: none; }
+.mm-top > .mm-badge + .mm-caret::before { content: ""; }
+
+/* Panels open ONLY via .open (managed by JS on hover, focus, click and tap)
+   so aria-expanded always matches what is on screen. */
+.mm-item.has-panel:hover .mm-panel { opacity: 0; visibility: hidden; pointer-events: none; transform: translateX(-50%) translateY(6px); }
+.mm-item.open .mm-panel,
+.mm-item.has-panel.open:hover .mm-panel { opacity: 1; visibility: visible; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+.mm-item.has-panel:hover .mm-caret { transform: none; }
+.mm-item.open .mm-caret { transform: rotate(180deg); }
+
+/* Panel: pinned to the viewport, never clipped left/right, never taller than
+   the viewport (Method has 40 links; at 800px it ran 300px below the fold). */
+.mm-panel { position: fixed; top: 66px; left: 0; width: 100%; transform: none !important; }
+.mm-item.open .mm-panel { transform: none !important; }
+.mm-panel-wrap { max-height: calc(100dvh - 76px); overflow-y: auto; overscroll-behavior: contain; }
+.mm-panel-inner { max-width: min(1440px, 100%); grid-template-columns: minmax(180px, 240px) minmax(0, 1fr); }
+.mm-cols { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+@media (min-width: 1200px) { .mm-cols { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); } }
+.mm-group { min-width: 0; }
+.mm-group a { overflow-wrap: anywhere; }
+
+/* ---- Active cascade: three distinct levels, never colour alone ---- */
+/* L1 pillar tab: bold + gradient underline (underline already in style.css) */
+.mm-top.active, .mm-top[aria-current] { color: var(--text); font-weight: 700; }
+.mm-more-top.active::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 1px; height: 2px; border-radius: 2px; background: var(--grad-aurora); }
+/* L2 group heading: bold, underlined, marker glyph */
+.mm-hub.is-current { color: var(--text); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.mm-hub.is-current::before { content: "\25B8\00a0"; }
+.mm-group.is-current { border-left: 2px solid var(--line-strong); padding-left: 10px; margin-left: -12px; }
+/* L3 leaf: filled background + left rule + weight */
+.mm-group a.is-current, .mm-more-drawer a.is-current {
+  color: var(--text); font-weight: 700; background: rgba(140,160,255,0.14);
+  box-shadow: inset 3px 0 0 var(--cyan); padding-left: 12px;
+}
+.mm-intro-cta.is-current { text-decoration: underline; }
+
+/* ---- "More" trigger + drawer ---- */
+.mm-more { position: relative; flex: 0 0 auto; }
+.mm-more-drawer {
+  position: fixed; top: 66px; right: 0; bottom: 0; z-index: 210;
+  width: min(760px, 100vw); overflow-y: auto; overscroll-behavior: contain;
+  background: rgba(8,10,22,0.99); border-left: 1px solid var(--line-strong);
+  box-shadow: -30px 0 80px -30px rgba(0,0,0,0.9); padding: 0 0 30px;
+}
+.mm-more-head { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 22px; background: rgba(8,10,22,0.99); border-bottom: 1px solid var(--line); font-family: var(--font); font-weight: 700; }
+.mm-more-close { background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 8px; min-width: 40px; min-height: 40px; cursor: pointer; }
+.mm-more-pillar { padding: 18px 22px 6px; border-bottom: 1px solid var(--line); }
+.mm-more-label { font-family: var(--font); font-size: 1rem; margin-bottom: 6px; display: flex; gap: 8px; align-items: center; }
+.mm-more-label.is-current::before { content: "\25B8"; color: var(--cyan); }
+.mm-more-inner { display: block; padding: 0; max-width: none; }
+.mm-more-inner .mm-intro { border-right: 0; padding-right: 0; margin-bottom: 14px; }
+.mm-more-inner .mm-intro-label { display: none; }
+.mm-more-inner .mm-cols { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+@media (max-width: 1179.98px) { .mm-more, .mm-more-drawer { display: none !important; } }
+
+/* ---- Utility cluster: every item always rendered; words collapse, never the item.
+   Before: style.css had `.util-link.util-verify{display:none}` ≤1280px and
+   estate.css hid .ul-word ≤1279.98px — Verify survived only via !important. ---- */
+@media (min-width: 1180px) and (max-width: 1679.98px) {
+  .nav-utility .util-link .ul-word, .nav-search-btn .nsb-label, .nav-search-btn kbd { display: none; }
+  .util-link, .nav-search-btn { min-width: 40px; min-height: 40px; justify-content: center; padding: 8px 10px; }
+}
+
+/* ---- Mobile accordion ---- */
+.mobile-menu { max-height: calc(100dvh - 66px); overflow-y: auto; }
+.mobile-menu.open { display: flex; }
+/* Before: .mm-m-panel had max-height:900px + overflow:hidden → License (40
+   links, 1872px) cut off 20 links with no way to reach them. Now: no cap;
+   the outer menu scrolls and only one pillar is open at a time. */
+.mm-m-group .mm-m-panel, .mm-m-group.open .mm-m-panel { max-height: none; overflow: visible; }
+.mm-m-group.open .mm-m-panel:not([hidden]) { display: block; }
+.mm-m-toggle { min-height: 48px; }
+.mm-m-sub, .mm-m-hub { min-height: 40px; display: flex; align-items: center; }
+.mm-m-hub.is-current, .mm-m-sub.is-current { color: var(--text) !important; font-weight: 700; }
+.mm-m-sub.is-current { border-left-color: var(--cyan); background: rgba(140,160,255,0.12); }
+.mm-m-hub.is-current::before { content: "\25B8\00a0"; }
+.mm-m-toggle.active { font-weight: 700; }
+.mm-m-toggle.active::before { content: "\25B8\00a0"; }
+.mm-m-sec { margin-bottom: 6px; }
+
+/* ---- Ultra-narrow (≤360px): keep brand + hamburger on one row ---- */
+@media (max-width: 360px) { .brand .name { font-size: 0.95rem; } .nav-inner { padding: 0 12px; } }
+
+/* ---- Utility bar below 1180px: icon-only in the header, never display:none.
+   Before: `.nav-utility{display:none!important}` for 0–1179.98px, so Start
+   Here / Verify / Search existed only inside the closed hamburger.
+   Now: 421–1179px → all four as 44px icons; ≤420px → Start + Search as icons,
+   Verify + Sign in move to the overflow state (first row of the hamburger). */
+@media (max-width: 1179.98px) {
+  .nav-utility { display: flex !important; gap: 2px; margin-left: auto; margin-right: 6px; }
+  .nav-utility .ul-word, .nav-search-btn .nsb-label, .nav-search-btn kbd { display: none !important; }
+  .nav-utility .util-link, .nav-utility .nav-search-btn { min-width: 44px; min-height: 44px; padding: 0; justify-content: center; border-radius: 12px; }
+  .nav-utility .util-link.util-start, .nav-utility .util-link.util-verify { border-width: 1px; }
+}
+@media (max-width: 420px) {
+  .nav-utility .util-link.util-verify, .nav-utility .util-link.util-auth { display: none !important; } /* overflow → hamburger row 1 */
+  .mm-mobile-util a[href*="verify"], .mm-mobile-util a[href*="auth."] { order: -1; border-color: var(--emerald); }
+}
+
+/* ---- Comfortable tab size (the "More" threshold is defined by this) ----
+   A tab never renders below 0.9rem text / 10px side padding. The earlier fluid
+   clamp shrank tabs to ~12.6px text at 1180px to force all nine in; now tabs
+   keep this size and chrome.js fit() folds the overflow into "More". */
+@media (min-width: 1180px) {
+  .mm-top { font-size: 0.9rem !important; padding: 10px 10px !important; }
+  .nav-links.mega { gap: 4px; }
+}
+/* 320px: brand + 2 icons + hamburger must fit (was 12px over). */
+@media (max-width: 360px) {
+  .brand { gap: 6px; }
+  .brand .mark { width: 30px; height: 30px; }
+  .nav-utility { margin-right: 2px; }
+  .nav-utility .util-link, .nav-utility .nav-search-btn { min-width: 40px; min-height: 44px; }
+  .nav-toggle { min-width: 44px; width: 44px; }
+}
+@media (min-width: 1180px) { .mm-item, .mm-more { flex: 0 0 auto; } }

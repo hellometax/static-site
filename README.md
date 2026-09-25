@@ -127,3 +127,42 @@ unescaped-quote bug (which broke every page) was found and fixed this pass.
 
 Publish via the **Publish tab** (or a Hosted Deploy). The build is pure static
 HTML/CSS/JS with `_redirects` for the legacy flat URLs.
+
+---
+
+## 9. Changelog — 2026-09-25 · navigation audit & repair
+
+See `SITE_MAP.md` (§4 navigation, full route tree) and `CONTENT_GAPS.md`.
+
+- **Deployed ≠ main.** `metax.academy` serves the older flat 7-pillar build;
+  none of this build's `/js/routes.js`, `/css/estate.css`, `/content/**` or
+  directory routes exist in production.
+- **249 missing shells generated** (`tools/gen-shells.js`). Leaf routes had no
+  `index.html`, so they served the site 404 instead of the "being written" state.
+- **Header overflow fixed.** At 1280–1920px the header row was 138–365px wider
+  than the viewport, which pushed Search and Sign in off-screen. Tabs now keep a
+  comfortable size, and a measured `fit()` folds pillars into a new **More ▾**
+  drawer (full group/leaf trees, priority in `MX_ROUTES.NAV_PRIORITY`).
+- **Panels** are pinned to the viewport and scroll internally. Method, Academies
+  and License panels ran below the fold before.
+- **Three-level active state** (`MX_ROUTES.activeTrail`): pillar, group and leaf,
+  with `aria-current` plus a non-colour visual marker in the mega panel, More
+  drawer and mobile menu.
+- **Keyboard**: pillar triggers are `<button>`s (Enter used to navigate away
+  before the panel could be used). A panel opens on focus. Enter/↓ go into it,
+  ←/→ move between tabs, Esc closes it and returns focus, and Tab moves tab to
+  tab (it used to take 36 presses to reach the second tab). Hover and
+  `aria-expanded` no longer diverge. There is a skip link, and the search modal
+  returns focus on close.
+- **Mobile**: the utility bar is icon-only instead of `display:none`. The
+  accordion is single-open, and the current pillar starts expanded and scrolled
+  to the current page. The 900px panel cap that cut off half of License/Method is
+  removed. Each pillar has a link to its hub.
+- Double Markdown fetch on hubs/leaves removed. Search now covers every
+  `MX_ROUTES` entry.
+- Verified the Turn-5 fixes still hold: the mobile toggle binds after the header
+  is built, the `/img/` hero paths are root-relative, and the menu is capped
+  at `100dvh − 66px`.
+- Tools: `tools/route-inventory.js`, `pages-server.js` (a Pages-faithful local
+  server), `nav-audit.js` (Playwright), `gen-shells.js`, `gen-site-map.js` and
+  `gen-content-gaps.js`.

@@ -70,14 +70,30 @@
     // Render as a detail page via the shared MD parser.
     host.id = "mx-doc";
     host.setAttribute("data-md", md);
+    host.setAttribute("data-mx-booted", "page");
     if (window.__mdPage) {
       fetch(md).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
         .then(function (t) { window.__mdPage.render(host, t); })
-        .catch(function (e) {
-          host.innerHTML = '<section class="hero wrap"><span class="eyebrow">\u2726 MetaX</span>' +
-            "<h1>This page is being written.</h1>" +
-            '<p class="lead">The content source for this route could not be loaded. The estate is a demo build; ' +
-            'see the <a href="/about/status/defects/">defect log</a> and the <a href="/search/">route index</a>.</p></section>';
+        .catch(function () {
+          /* Honest empty state (SPEC §D.2): name the route, its group and status,
+             link upward. Never invent prose. */
+          var t = R && R.activeTrail ? R.activeTrail(path) : {};
+          var pil = null, grp = null, leaf = null;
+          if (R) R.MENU.forEach(function (m) { if (m.key === t.pillar) { pil = m; (m.groups || []).forEach(function (g) {
+            if (g.hub === t.group) { grp = g; g.links.forEach(function (l) { if (l.u === path) leaf = l; }); } }); } });
+          function e(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+          var title = leaf ? leaf.t : "This page";
+          var st = grp && grp.badge ? ' <span class="mm-badge mmb-' + grp.badge + '">' + grp.badge.replace(/-/g, " ") + "</span>" : "";
+          host.innerHTML = '<section class="hero wrap mx-doc-hero"><span class="eyebrow">\u2726 ' + e(pil ? pil.label : "MetaX") +
+            (grp ? " \u00b7 " + e(grp.heading) : "") + "</span>" +
+            "<h1>" + e(title) + " is being written.</h1>" +
+            '<p class="lead">This route is declared in the estate map but its page has not been published yet. Nothing on this page is a placeholder value.</p>' +
+            '<div class="mx-pagestamp">' + st + " \u00b7 not yet written \u00b7 " + e(path) + "</div>" +
+            '<div class="hero-actions">' +
+            (grp ? '<a class="btn btn-primary" href="' + grp.hub + '">' + e(grp.heading) + " hub \u2192</a>" : "") +
+            (pil ? '<a class="btn btn-ghost" href="' + pil.href + '">' + e(pil.label) + "</a>" : "") +
+            '<a class="btn btn-ghost" href="/about/status/defects/">Defect log</a></div></section>';
+          document.title = title + " (being written) \u2014 MetaX.Academy";
           if (window.MX && MX.observeReveal) MX.observeReveal(host);
         });
     }
